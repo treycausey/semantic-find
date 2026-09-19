@@ -1,0 +1,25 @@
+[
+  {
+    "query": "installed on the phone",
+    "mode": "local-lexical",
+    "pathSuffix": "basic/deployment.md",
+    "lineStart": 3
+  },
+  {
+    "query": "handset signoff",
+    "mode": "semantic",
+    "pathSuffix": "nested/notes.txt",
+    "lineStart": 1
+  },
+  {
+    "query": "production deployment happened",
+    "mode": "semantic",
+    "pathSuffix": "basic/deployment.md",
+    "lineStart": 4
+  },
+  {
+    "query": "a phrase absent from the corpus",
+    "mode": "local-lexical",
+    "expected": "no-match"
+  }
+]

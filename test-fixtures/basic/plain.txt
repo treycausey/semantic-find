@@ -1,0 +1,2 @@
+The operator confirmed the device was paired before testing.
+The result is recorded in the acceptance log.
