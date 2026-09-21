@@ -14,7 +14,7 @@ TYPESAFE_API_KEY=... bun run src/cli.ts --semantic \
   --query "physical device acceptance" ./test-fixtures
 ```
 
-The Jev model is pinned to `jev-1.13.0`. `--semantic` sends the query, selected candidate path and line metadata, and the candidate text to TypeSafe AI. It never sends the whole filesystem. It also never prints a quotation returned by Jev: every result's `text` comes from the local source bytes retained before the request. Without `TYPESAFE_API_KEY`, with a timeout, or with an invalid Jev answer, the CLI reports `local-lexical-fallback` and keeps the local results.
+The Jev model is pinned to `jev-1.13.0`. `--semantic` sends the query, the candidate's path and line range, and the candidate text to TypeSafe AI. It never sends the whole filesystem. **The path it sends is relative to the root you selected**, so a request carries `nested/notes.txt`, never `/Users/you/nested/notes.txt`: the absolute location, your home directory, and your account name stay on the machine. A directly selected file is sent as its basename alone. Results printed locally still show the full path so you can open them. It also never prints a quotation returned by Jev: every result's `text` comes from the local source bytes retained before the request. Without `TYPESAFE_API_KEY`, with a timeout, or with an invalid Jev answer, the CLI reports `local-lexical-fallback` and keeps the local results.
 
 Roots are positional and must be supplied. There is no implicit current-directory or home-directory scan. Multiple roots are supported:
 
@@ -55,3 +55,7 @@ The fixture queries in `test/search.test.ts` and the machine-readable `test-fixt
 | `handset signoff` | `test-fixtures/nested/notes.txt:1` (semantic mode can recover this from the lexical-miss candidate pool) |
 | `production deployment happened` | `test-fixtures/basic/deployment.md` (decisive source line 4) |
 | `a phrase absent from the corpus` | no matches |
+
+## License
+
+MIT. See [LICENSE](LICENSE).

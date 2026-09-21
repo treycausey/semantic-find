@@ -2,6 +2,7 @@
   "name": "semantic-find",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "description": "Bounded local evidence search with optional Jev reranking",
   "type": "module",
   "bin": {

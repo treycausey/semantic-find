@@ -201,7 +201,8 @@ export async function evaluateCandidates(
           state: {
             query,
             candidate: {
-              path: candidate.path,
+              // Relative by construction; the absolute path never leaves the machine.
+              path: candidate.relativePath,
               lineStart: candidate.lineStart,
               lineEnd: candidate.lineEnd,
               text: candidate.text,

@@ -1,5 +1,5 @@
 import { lstat, readFile, readdir, realpath, stat } from "node:fs/promises";
-import { dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from "node:path";
 import type {
   DiscoveryReport,
   FileRecord,
@@ -87,6 +87,19 @@ function pathIsWithin(child: string, parent: string): boolean {
   );
 }
 
+/**
+ * The path form used for the cloud boundary. It is always relative to the
+ * selected root and never escapes it, so a run cannot disclose the absolute
+ * location, the home directory, or the account name.
+ */
+function relativeLabel(base: string, path: string): string {
+  const label = relative(base, path);
+  if (label === "" || isAbsolute(label) || label === ".." || label.startsWith(`..${sep}`)) {
+    return basename(path);
+  }
+  return label;
+}
+
 function pathSegments(path: string): readonly string[] {
   return path.split(/[\\/]+/u).filter(Boolean);
 }
@@ -130,7 +143,7 @@ function extensionAllowed(
 async function readTextFile(
   path: string,
   maxFileBytes: number,
-): Promise<{ record?: FileRecord; reason?: SkippedFile["reason"] }> {
+): Promise<{ record?: Omit<FileRecord, "relativePath">; reason?: SkippedFile["reason"] }> {
   let fileStat;
   try {
     fileStat = await stat(path);
@@ -179,6 +192,7 @@ async function readTextFile(
 
 interface WalkContext {
   readonly boundary: string;
+  readonly relativeBase: string;
   readonly options: SearchOptions;
   readonly files: FileRecord[];
   readonly skipped: SkippedFile[];
@@ -336,6 +350,7 @@ async function walkPath(
     ...loaded.record,
     path: resolve(currentPath),
     realPath: fileRealPath,
+    relativePath: relativeLabel(context.relativeBase, resolve(currentPath)),
   });
   context.totalBytes += loaded.record.bytes;
 }
@@ -366,8 +381,10 @@ export async function discoverFiles(options: SearchOptions): Promise<DiscoveryRe
       continue;
     }
     const boundary = rootStat.isDirectory() ? realRoot : dirname(realRoot);
+    const relativeBase = rootStat.isDirectory() ? absoluteRoot : dirname(absoluteRoot);
     const context: WalkContext = {
       boundary,
+      relativeBase,
       options,
       files,
       skipped,

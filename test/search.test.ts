@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { homedir, tmpdir } from "node:os";
+import { isAbsolute, join, resolve } from "node:path";
 import type { Fetch } from "@typesafe-ai/sdk";
 import { search } from "../src/search";
 import type { SearchOptions } from "../src/types";
@@ -322,4 +322,57 @@ test("an empty semantic corpus does not make a Jev request", async () => {
   expect(response.status).toBe("no-match");
   expect(response.warnings?.[0]).toContain("no readable text chunks");
   expect(calls).toBe(0);
+});
+
+test("semantic mode sends only root-relative paths, never an absolute location", async () => {
+  const requestPaths: string[] = [];
+  const fetch: Fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body)) as {
+      state: { candidate: { path: string; text: string } };
+    };
+    requestPaths.push(body.state.candidate.path);
+    return new Response(JSON.stringify(responseFor(false)), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  await search(
+    options({
+      query: "handset signoff",
+      roots: [fixtureRoot],
+      semantic: true,
+      semanticAll: true,
+      maxChunks: 20,
+    }),
+    { apiKey: "synthetic-test-key", fetch },
+  );
+  expect(requestPaths.length).toBeGreaterThan(1);
+  expect(requestPaths.every((path) => !isAbsolute(path))).toBe(true);
+  expect(requestPaths.every((path) => !path.startsWith(".."))).toBe(true);
+  expect(requestPaths.every((path) => !path.includes(fixtureRoot))).toBe(true);
+  expect(requestPaths.every((path) => !path.includes(homedir()))).toBe(true);
+  expect(requestPaths).toContain(join("nested", "notes.txt"));
+});
+
+test("a directly selected file is sent as its basename alone", async () => {
+  const requestPaths: string[] = [];
+  const fetch: Fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body)) as { state: { candidate: { path: string } } };
+    requestPaths.push(body.state.candidate.path);
+    return new Response(JSON.stringify(responseFor(false)), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    });
+  };
+  await search(
+    options({
+      query: "physical measurement accuracy",
+      roots: [resolve(fixtureRoot, "context.md")],
+      semantic: true,
+      semanticAll: true,
+    }),
+    { apiKey: "synthetic-test-key", fetch },
+  );
+  expect(requestPaths.length).toBeGreaterThan(0);
+  expect(new Set(requestPaths)).toEqual(new Set(["context.md"]));
 });

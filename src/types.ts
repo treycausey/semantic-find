@@ -30,6 +30,8 @@ export interface SearchOptions {
 export interface FileRecord {
   readonly path: string;
   readonly realPath: string;
+  /** Path relative to the selected root. This is the only path form sent off the machine. */
+  readonly relativePath: string;
   readonly text: string;
   readonly bytes: number;
 }
@@ -69,6 +71,8 @@ export interface Candidate {
   readonly id: string;
   readonly path: string;
   readonly realPath: string;
+  /** Path relative to the selected root. This is the only path form sent off the machine. */
+  readonly relativePath: string;
   readonly lineStart: number;
   readonly lineEnd: number;
   readonly text: string;
