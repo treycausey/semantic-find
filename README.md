@@ -1,5 +1,14 @@
 # semantic-find
 
+## Retired 2026-11-27
+
+- What it was: a CLI that searches explicitly selected local files for evidence. It ranks bounded chunks with a small lexical scorer; Jev reranking is opt-in.
+- Why it stopped: went quiet. It has two commits, on 2026-09-19 and 2026-09-20.
+- Worth reusing: the privacy boundary. Only root-relative paths and the chosen candidate chunks leave the machine, printed text always comes from local bytes and never from the model, and any Jev failure falls back to the local results.
+- Worth reusing: the walker's skip rules (credentials, config, binaries, symlinks that leave the root) and its hard budgets: 512 KiB per file, 32 MiB per run, 64 Jev requests per run.
+- If `~/.local/bin/semantic-find` exists it is a symlink into this checkout and still works; there is no background service.
+- Retired through the weekly cooling review. The repo is archived, not deleted, and the folder stays in place.
+
 `semantic-find` searches explicitly selected local files for evidence. The default mode reads Markdown and plain text, ranks bounded chunks with a small lexical scorer, and prints the exact local path, line range, source text, evidence type (`unknown` for lexical-only results), and relevance.
 
 Semantic reranking is opt-in:
